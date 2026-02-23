@@ -1,57 +1,18 @@
-/*
-百度地图去广告 - Loon 增强适配版
-*/
+#!name = 百度地图去广告 (Loon增强版)
+#!desc = 深度复刻 QX 版去广告效果。
+#!author = ddgksf2013 & AI适配
+#!tag = 广告拦截
 
-const url = $request.url;
+[MITM]
+hostname = 180.76.76.200, newclient.map.baidu.com, httpdns.baidubce.com, ugc.map.baidu.com, *.map.baidu.com
 
-// --- 1. 模拟 QX 的 reject-200 逻辑 ---
-// 这些 URL 需要直接返回空数据，且状态码必须是 200
-const needReject200 = [
-    "qt=rgc", 
-    "qt=hw", 
-    "qt=ads", 
-    "crossmarketing", 
-    "home/dynamic", 
-    "bounty/tips"
-];
+[Script]
+# 使用脚本接管所有相关请求，确保实现 reject-200 效果
+http-request ^https?:\/\/newclient\.map\.baidu\.com\/client\/(phpui|crossmarketing|usersystem\/home\/dynamic) script-path=https://raw.githubusercontent.com/你的用户名/你的仓库名/main/bdmap_clean.js, tag=百度地图_模拟拦截
+http-request ^https?:\/\/newclient\.map\.baidu\.com\/contributor-bus\/bounty\/tips script-path=https://raw.githubusercontent.com/你的用户名/你的仓库名/main/bdmap_clean.js, tag=百度地图_Tips拦截
 
-if (needReject200.some(path => url.includes(path))) {
-    $done({ status: 200, body: "{}" });
-}
-
-// --- 2. 修改 JSON 响应逻辑 ---
-if (!$response || !$response.body) $done({});
-
-let obj;
-try {
-    obj = JSON.parse($response.body);
-} catch (e) {
-    $done({});
-}
-
-// 首页底部推荐
-if (url.includes("rich_content")) {
-    if (obj.data?.posts) obj.data.posts.content = [];
-}
-
-// DNS 处理
-if (url.includes("httpdns.baidubce.com")) {
-    if (obj.data) obj.data["newclient.map.baidu.com"] = {};
-}
-
-// 个人中心页面
-if (url.includes("usercenter/mine/page")) {
-    if (obj.data) {
-        delete obj.data.sport_card;
-        delete obj.data.gold;
-        delete obj.data.gold_coin_card;
-        delete obj.data.shop;
-    }
-}
-
-// 周边搜索填词
-if (url.includes("living/nearby/hot-words")) {
-    if (obj.Result) obj.Result.data = [];
-}
-
-$done({ body: JSON.stringify(obj) });
+# 数据修改类
+http-response ^https?:\/\/.*map\.baidu\.com\/.*govui\/rich_content script-path=https://raw.githubusercontent.com/你的用户名/你的仓库名/main/bdmap_clean.js, requires-body=true, tag=百度地图_首页推荐
+http-response ^https?:\/\/httpdns\.baidubce\.com script-path=https://raw.githubusercontent.com/你的用户名/你的仓库名/main/bdmap_clean.js, requires-body=true, tag=百度地图_DNS处理
+http-response ^https?:\/\/newclient\.map\.baidu\.com\/usercenter\/mine\/page script-path=https://raw.githubusercontent.com/你的用户名/你的仓库名/main/bdmap_clean.js, requires-body=true, tag=百度地图_个人页
+http-response ^https?:\/\/newclient\.map\.baidu\.com\/living\/nearby\/hot-words\? script-path=https://raw.githubusercontent.com/你的用户名/你的仓库名/main/bdmap_clean.js, requires-body=true, tag=百度地图_热词
