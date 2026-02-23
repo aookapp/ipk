@@ -1,0 +1,80 @@
+#!name = 百度地图去广告 (QX深度复刻版)
+#!desc = 1:1 复刻墨鱼 QX 脚本逻辑。包含开屏、搜索推广、个人中心精简及 HTTPDNS 处理。
+#!author = ddgksf2013 & AI适配
+#!tag = 广告拦截
+#!date = 2026-02-22
+
+[General]
+# 建议在 Loon 全局设置中开启“解析器”，或手动添加屏蔽 QUIC
+# 屏蔽 QUIC 强制 App 回退到 HTTPS 确保脚本生效
+[Rule]
+# 屏蔽百度地图可能的 UDP 443 (QUIC) 流量
+DEST-PORT, 443, REJECT, no-error-if-not-match
+
+[MITM]
+# 必须包含这个 IP，否则 DNS 过滤和部分广告拦截会失效
+hostname = 180.76.76.200, newclient.map.baidu.com, httpdns.baidubce.com, ugc.map.baidu.com, *.map.baidu.com, map.baidu.com
+
+[Rewrite]
+# --- 1:1 复刻 QX 的 reject-200 逻辑 (使用 Loon 原生指令) ---
+# 搜索框下足记Tips
+^https?:\/\/newclient\.map\.baidu\.com\/client\/phpui.*qt=rgc reject-200
+# 搜索推广
+^https?:\/\/newclient\.map\.baidu\.com\/client\/phpui.*qt=hw reject-200
+# 开屏广告
+^https?:\/\/newclient\.map\.baidu\.com\/client\/phpui2\/\?qt=ads reject-200
+# 商业推广
+^https?:\/\/newclient\.map\.baidu\.com\/client\/crossmarketing reject-200
+# 动态信息
+^https?:\/\/newclient\.map\.baidu\.com\/client\/usersystem\/home\/dynamic reject-200
+# 赏金Tips
+^https?:\/\/newclient\.map\.baidu\.com\/contributor-bus\/bounty\/tips reject-200
+
+[Script]
+# --- 1:1 复刻 QX 的 jsonjq 逻辑 (通过下方 JS 处理) ---
+# 首页底部推荐
+http-response ^https?:\/\/.*map\.baidu\.com\/.*govui\/rich_content script-path=https://raw.githubusercontent.com/aookapp/ipk/main/BaiduMap.plugin, requires-body=true, tag=百度地图_推荐
+# DNS处理
+http-response ^https?:\/\/httpdns\.baidubce\.com script-path=https://raw.githubusercontent.com/aookapp/ipk/main/BaiduMap.plugin, requires-body=true, tag=百度地图_DNS
+# 个人中心
+http-response ^https?:\/\/newclient\.map\.baidu\.com\/usercenter\/mine\/page script-path=https://raw.githubusercontent.com/aookapp/ipk/main/BaiduMap.plugin, requires-body=true, tag=百度地图_个人页
+# 周边热词
+http-response ^https?:\/\/newclient\.map\.baidu\.com\/living\/nearby\/hot-words\? script-path=https://raw.githubusercontent.com/aookapp/ipk/main/BaiduMap.plugin, requires-body=true, tag=百度地图_热词
+
+/*
+[JavaScript Logic]
+*/
+
+if (typeof $response !== "undefined") {
+    let obj = JSON.parse($response.body);
+    let url = $request.url;
+
+    // 对应 jq: .data.posts.content=[]
+    if (url.indexOf("rich_content") !== -1) {
+        if (obj.data && obj.data.posts) obj.data.posts.content = [];
+    }
+
+    // 对应 jq: .data["newclient.map.baidu.com"]={}
+    if (url.indexOf("httpdns") !== -1) {
+        if (obj.data) obj.data["newclient.map.baidu.com"] = {};
+    }
+
+    // 对应 jq: del(.data.sport_card, .data.gold, .data.gold_coin_card, .data.shop)
+    if (url.indexOf("mine/page") !== -1) {
+        if (obj.data) {
+            delete obj.data.sport_card;
+            delete obj.data.gold;
+            delete obj.data.gold_coin_card;
+            delete obj.data.shop;
+        }
+    }
+
+    // 对应 jq: .Result.data=[]
+    if (url.indexOf("hot-words") !== -1) {
+        if (obj.Result) obj.Result.data = [];
+    }
+
+    $done({ body: JSON.stringify(obj) });
+} else {
+    $done({});
+}
