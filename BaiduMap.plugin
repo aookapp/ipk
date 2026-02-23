@@ -1,0 +1,24 @@
+#!name = 百度地图去广告 (GitHub版)
+#!desc = 移除开屏、搜索推广、个人中心营销等内容。通过 GitHub 远程引用脚本。
+#!author = ddgksf2013 & AI适配
+#!date = 2026-02-22
+#!tag = 广告拦截
+
+[MITM]
+hostname = 180.76.76.200, newclient.map.baidu.com, httpdns.baidubce.com, ugc.map.baidu.com
+
+[Rewrite]
+# 直接拦截类
+^https?:\/\/newclient\.map\.baidu\.com\/client\/phpui.*qt=rgc reject
+^https?:\/\/newclient\.map\.baidu\.com\/client\/phpui.*qt=hw reject
+^https?:\/\/newclient\.map\.baidu\.com\/client\/phpui2\/\?qt=ads reject
+^https?:\/\/newclient\.map\.baidu\.com\/client\/crossmarketing reject
+^https?:\/\/newclient\.map\.baidu\.com\/client\/usersystem\/home\/dynamic reject
+^https?:\/\/newclient\.map\.baidu\.com\/contributor-bus\/bounty\/tips reject
+
+[Script]
+# 注意：此处的 script-path 必须使用 GitHub 的 Raw 地址
+http-response ^https?:\/\/.*map\.baidu\.com\/.*govui\/rich_content script-path=https://raw.githubusercontent.com/aookapp/ipk/main/bdmap_clean.js, requires-body=true, tag=百度地图_首页推荐
+http-response ^https?:\/\/httpdns\.baidubce\.com script-path=https://raw.githubusercontent.com/aookapp/ipk/main/bdmap_clean.js, requires-body=true, tag=百度地图_DNS处理
+http-response ^https?:\/\/newclient\.map\.baidu\.com\/usercenter\/mine\/page script-path=https://raw.githubusercontent.com/aookapp/ipk/main/bdmap_clean.js, requires-body=true, tag=百度地图_个人页
+http-response ^https?:\/\/newclient\.map\.baidu\.com\/living\/nearby\/hot-words\? script-path=https://raw.githubusercontent.com/aookapp/ipk/main/bdmap_clean.js, requires-body=true, tag=百度地图_热词
