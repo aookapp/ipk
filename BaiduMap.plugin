@@ -33,13 +33,13 @@ hostname = 180.76.76.200, newclient.map.baidu.com, httpdns.baidubce.com, ugc.map
 [Script]
 # --- 1:1 复刻 QX 的 jsonjq 逻辑 (通过下方 JS 处理) ---
 # 首页底部推荐
-http-response ^https?:\/\/.*map\.baidu\.com\/.*govui\/rich_content script-path=https://raw.githubusercontent.com/你的用户名/你的仓库名/main/BaiduMap.plugin, requires-body=true, tag=百度地图_推荐
+http-response ^https?:\/\/.*map\.baidu\.com\/.*govui\/rich_content script-path=https://raw.githubusercontent.com/aookapp/ipk/main/BaiduMap.plugin, requires-body=true, tag=百度地图_推荐
 # DNS处理
-http-response ^https?:\/\/httpdns\.baidubce\.com script-path=https://raw.githubusercontent.com/你的用户名/你的仓库名/main/BaiduMap.plugin, requires-body=true, tag=百度地图_DNS
+http-response ^https?:\/\/httpdns\.baidubce\.com script-path=https://raw.githubusercontent.com/aookapp/ipk/main/BaiduMap.plugin, requires-body=true, tag=百度地图_DNS
 # 个人中心
-http-response ^https?:\/\/newclient\.map\.baidu\.com\/usercenter\/mine\/page script-path=https://raw.githubusercontent.com/你的用户名/你的仓库名/main/BaiduMap.plugin, requires-body=true, tag=百度地图_个人页
+http-response ^https?:\/\/newclient\.map\.baidu\.com\/usercenter\/mine\/page script-path=https://raw.githubusercontent.com/aookapp/ipk/main/BaiduMap.plugin, requires-body=true, tag=百度地图_个人页
 # 周边热词
-http-response ^https?:\/\/newclient\.map\.baidu\.com\/living\/nearby\/hot-words\? script-path=https://raw.githubusercontent.com/你的用户名/你的仓库名/main/BaiduMap.plugin, requires-body=true, tag=百度地图_热词
+http-response ^https?:\/\/newclient\.map\.baidu\.com\/living\/nearby\/hot-words\? script-path=https://raw.githubusercontent.com/aookapp/ipk/main/BaiduMap.plugin, requires-body=true, tag=百度地图_热词
 
 /*
 [JavaScript Logic]
@@ -78,3 +78,4 @@ if (typeof $response !== "undefined") {
 } else {
     $done({});
 }
+
